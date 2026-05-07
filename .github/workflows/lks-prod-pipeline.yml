@@ -1,0 +1,166 @@
+name: lks-prod-pipeline
+
+on:
+  push:
+    branches:
+      - "prod"
+    paths:
+      - .github/workflows/lks-prod-pipeline.yml
+      - "vote/**"
+      - "result/**"
+      - "worker/**"
+
+env:
+  AWS_REGION: us-east-1                 
+  ECS_CLUSTER: lks-voting-cluster
+  ECR_REPOSITORY: lks-voting-image
+  ECS_SERVICE_VOTE: lks-vote-service
+  ECS_SERVICE_RESULT: lks-result-service
+  ECS_SERVICE_WORKER: lks-worker-service          
+  VOTE_TASK_DEFINITION: vote/task-definition.json
+  VOTE_CONTAINER_NAME: lks-vote-container
+  RESULT_TASK_DEFINITION: result/task-definition.json
+  RESULT_CONTAINER_NAME: lks-result-container
+  WORKER_TASK_DEFINITION: worker/task-definition.json
+  WORKER_CONTAINER_NAME: lks-worker-container
+  ENV: "prod"
+ 
+jobs:
+  build:
+    name: Build Image Production
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+      
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+        VOTE_IMAGE_TAG_NUMBER: vote-${{ env.ENV }}-${{ github.run_number }}
+        RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+        RESULT_IMAGE_TAG_NUMBER: result-${{ env.ENV }}-${{ github.run_number }}
+        WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+        WORKER_IMAGE_TAG_NUMBER: worker-${{ env.ENV }}-${{ github.run_number }}
+        
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG -f vote/Dockerfile ./vote
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG_NUMBER
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG_NUMBER
+        echo "::set-output name=vote_image::$ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG"
+        
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG -f result/Dockerfile ./result
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG_NUMBER
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG_NUMBER
+        echo "::set-output name=result_image::$ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG"
+        
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG -f worker/Dockerfile ./worker
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG_NUMBER
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG_NUMBER
+        echo "::set-output name=worker_image::$ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG"
+
+    - name: End Build
+      run: echo "Build Success"
+              
+  deploy:
+    name: Deploy Application to Production
+    runs-on: ubuntu-latest
+    needs: build
+    environment: Prod
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Set Variable
+      id: set-vars
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+        RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+        WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+      run: |
+        echo "::set-output name=vote_image::$ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG"
+        echo "::set-output name=result_image::$ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG"
+        echo "::set-output name=worker_image::$ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG"
+
+    - name: Fill in the new image ID in the Amazon ECS task definition (Vote)
+      id: task-def-vote
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.VOTE_TASK_DEFINITION }}
+        container-name: ${{ env.VOTE_CONTAINER_NAME }}
+        image: ${{ steps.set-vars.outputs.vote_image }}
+
+    - name: Deploy Amazon ECS task definition Vote
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-vote.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_VOTE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+        
+    - name: Fill in the new image ID in the Amazon ECS task definition (Result)
+      id: task-def-result
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.RESULT_TASK_DEFINITION }}
+        container-name: ${{ env.RESULT_CONTAINER_NAME }}
+        image: ${{ steps.set-vars.outputs.result_image }}
+
+    - name: Deploy Amazon ECS task definition Result
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-result.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_RESULT }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+        
+    - name: Fill in the new image ID in the Amazon ECS task definition (Worker)
+      id: task-def-worker
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.WORKER_TASK_DEFINITION }}
+        container-name: ${{ env.WORKER_CONTAINER_NAME }}
+        image: ${{ steps.set-vars.outputs.worker_image }}
+
+    - name: Deploy Amazon ECS task definition Worker
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-worker.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_WORKER }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+        
+    - name: Publish Message To SNS Subscribers
+      env:
+        TOPIC_ARN: ${{ secrets.AWS_SNS_ARN }}
+      run: aws sns publish --topic-arn $TOPIC_ARN --subject "Hello, from kalsel" --message "Deploy Succesful! New Version Is Released!"

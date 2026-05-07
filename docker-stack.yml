@@ -15,32 +15,32 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_PASSWORD: "LKSNCC2024"
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
       - backend
 
   vote:
-    image: dockersamples/examplevotingapp_vote
+    image: 557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image:vote-dev-latest
     ports:
-      - 5000:80
+      - 80:80
     networks:
       - frontend
     deploy:
       replicas: 3
 
   result:
-    image: dockersamples/examplevotingapp_result
+    image: 557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image:result-dev-latest
     ports:
-      - 5001:80
+      - 81:80
     networks:
       - backend
     deploy:
       replicas: 3
 
   worker:
-    image: dockersamples/examplevotingapp_worker
+    image: 557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image:worker-dev-latest
     networks:
       - frontend
       - backend
