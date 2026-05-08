@@ -198,4 +198,4 @@ jobs:
           docker service ls
           docker stack ls
           sleep 30
-          docker stack deploy --compose-file docker-stack.yml stackdev
+          docker stack deploy --compose-file docker-stack.yml stackdev --with-registry-auth
