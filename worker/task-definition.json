@@ -1,0 +1,107 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:557563069698:task-definition/lks-td-worker:2",
+    "containerDefinitions": [
+        {
+            "name": "lks-worker-container",
+            "image": "557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image@sha256:2f38396872f4b1b1c252f1faf09b6084c43b0b75744eb72bc6c0c50c8b99681f",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "POSTGRES_USER",
+                    "value": "postgres"
+                },
+                {
+                    "name": "POSTGRES_PASSWORD",
+                    "value": "LKSNCC2024"
+                },
+                {
+                    "name": "REDIS_HOST",
+                    "value": "master.lks-redis.s17lsg.use1.cache.amazonaws.com:6379"
+                },
+                {
+                    "name": "POSTGRES_DB",
+                    "value": "postgres"
+                },
+                {
+                    "name": "POSTGRES_HOST",
+                    "value": "lks-rds.cdjpfft9pqti.us-east-1.rds.amazonaws.com"
+                }
+            ],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/lks-td-worker",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "lks-td-worker",
+    "taskRoleArn": "arn:aws:iam::557563069698:role/LabRole",
+    "executionRoleArn": "arn:aws:iam::557563069698:role/LabRole",
+    "networkMode": "awsvpc",
+    "revision": 2,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE",
+        "MANAGED_INSTANCES"
+    ],
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "2048",
+    "memory": "4096",
+    "registeredAt": "2026-05-08T13:33:31.004Z",
+    "registeredBy": "arn:aws:sts::557563069698:assumed-role/voclabs/user5058520=152558-40",
+    "enableFaultInjection": false,
+    "tags": []
+}
