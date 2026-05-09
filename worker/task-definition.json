@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:557563069698:task-definition/lks-td-worker:2",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:557563069698:task-definition/lks-td-worker:13",
     "containerDefinitions": [
         {
             "name": "lks-worker-container",
-            "image": "557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image@sha256:2f38396872f4b1b1c252f1faf09b6084c43b0b75744eb72bc6c0c50c8b99681f",
+            "image": "557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image@sha256:83f2d310eecc801d9446792bd0e7231bbe9451370180bcf6104b67d555da6787",
             "cpu": 0,
             "portMappings": [],
             "essential": true,
@@ -18,7 +18,7 @@
                 },
                 {
                     "name": "REDIS_HOST",
-                    "value": "master.lks-redis.s17lsg.use1.cache.amazonaws.com:6379"
+                    "value": "master.lks-redis.s17lsg.use1.cache.amazonaws.com"
                 },
                 {
                     "name": "POSTGRES_DB",
@@ -29,10 +29,8 @@
                     "value": "lks-rds.cdjpfft9pqti.us-east-1.rds.amazonaws.com"
                 }
             ],
-            "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -50,7 +48,7 @@
     "taskRoleArn": "arn:aws:iam::557563069698:role/LabRole",
     "executionRoleArn": "arn:aws:iam::557563069698:role/LabRole",
     "networkMode": "awsvpc",
-    "revision": 2,
+    "revision": 13,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -88,8 +86,8 @@
     "placementConstraints": [],
     "compatibilities": [
         "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
+        "MANAGED_INSTANCES",
+        "FARGATE"
     ],
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
@@ -100,8 +98,7 @@
     ],
     "cpu": "2048",
     "memory": "4096",
-    "registeredAt": "2026-05-08T13:33:31.004Z",
+    "registeredAt": "2026-05-09T06:16:35.914Z",
     "registeredBy": "arn:aws:sts::557563069698:assumed-role/voclabs/user5058520=152558-40",
-    "enableFaultInjection": false,
     "tags": []
 }

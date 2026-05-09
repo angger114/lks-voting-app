@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:557563069698:task-definition/lks-td-result:2",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:557563069698:task-definition/lks-td-result:3",
     "containerDefinitions": [
         {
             "name": "lks-result-container",
-            "image": "557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image@sha256:d3f8641dc0f1c5eeba9cf38adba6ae964a4f8ffa17754516b4027b3ff8ca4fac",
+            "image": "557563069698.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image@sha256:f82da3c24247acb92181445ea6d7055393b9bf6b8a6ddf727ec66c620a139f7c",
             "cpu": 0,
             "portMappings": [
                 {
@@ -54,7 +54,7 @@
     "taskRoleArn": "arn:aws:iam::557563069698:role/LabRole",
     "executionRoleArn": "arn:aws:iam::557563069698:role/LabRole",
     "networkMode": "awsvpc",
-    "revision": 2,
+    "revision": 3,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -92,8 +92,8 @@
     "placementConstraints": [],
     "compatibilities": [
         "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
+        "MANAGED_INSTANCES",
+        "FARGATE"
     ],
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
@@ -104,8 +104,7 @@
     ],
     "cpu": "2048",
     "memory": "4096",
-    "registeredAt": "2026-05-08T13:30:13.450Z",
+    "registeredAt": "2026-05-08T13:49:11.326Z",
     "registeredBy": "arn:aws:sts::557563069698:assumed-role/voclabs/user5058520=152558-40",
-    "enableFaultInjection": false,
     "tags": []
 }
